@@ -8,11 +8,11 @@ import csv
 import hashlib
 import json
 import os
-from datetime import datetime
-from functools import wraps
 
 # ВАРІАНТ (підставити власні значення)
 import sys
+from datetime import datetime
+from functools import wraps
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
@@ -33,7 +33,6 @@ LOG_JSON_PATH = os.path.join(DATA_DIR, "log.json")
 # Власні винятки
 class ValidationError(Exception):
     """Викликається, коли пароль не проходить власну валідацію (напр. довжина)."""
-    pass
 
 
 # 1. Хешування
@@ -52,7 +51,7 @@ def generate_hash(password: str, salt: str = "00000") -> str:
             f"Пароль занадто короткий: мінімальна довжина — {MIN_PASSWORD_LENGTH} символів."
         )
 
-    raw = f"{password}{salt}".encode("utf-8")
+    raw = f"{password}{salt}".encode()
     hasher = hashlib.new(HASH_ALGORITHM)
     hasher.update(raw)
     return hasher.hexdigest()
@@ -103,7 +102,7 @@ def create_users(users_list) -> None:
 
     except PermissionError as e:
         print(f"Помилка доступу під час запису CSV: {e}")
-    except IOError as e:
+    except OSError as e:
         print(f"Помилка вводу/виводу під час запису CSV: {e}")
 
 
@@ -121,7 +120,7 @@ def read_users_db() -> list:
         print(f"Файл бази даних не знайдено: {e}")
     except PermissionError as e:
         print(f"Немає доступу до файлу бази даних: {e}")
-    except IOError as e:
+    except OSError as e:
         print(f"Помилка вводу/виводу під час читання CSV: {e}")
 
     return users_db
@@ -192,7 +191,7 @@ def _append_log_entry(entry: dict) -> None:
                     content = f.read().strip()
                     if content:
                         logs = json.loads(content)
-            except (json.JSONDecodeError, IOError):
+            except (OSError, json.JSONDecodeError):
                 logs = []
 
         logs.append(entry)
@@ -202,7 +201,7 @@ def _append_log_entry(entry: dict) -> None:
 
     except PermissionError as e:
         print(f"Помилка доступу під час запису у log.json: {e}")
-    except IOError as e:
+    except OSError as e:
         print(f"Помилка вводу/виводу під час запису у log.json: {e}")
 
 
@@ -277,7 +276,7 @@ if __name__ == "__main__":
         print(f"Файл не знайдено: {e}")
     except PermissionError as e:
         print(f"Немає прав доступу: {e}")
-    except IOError as e:
+    except OSError as e:
         print(f"Помилка вводу/виводу: {e}")
     except ValidationError as e:
         print(f"Помилка валідації: {e}")
