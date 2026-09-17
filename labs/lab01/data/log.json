@@ -1,0 +1,106 @@
+[
+  {
+    "event": "login",
+    "user": "alice_sec",
+    "result": "success",
+    "timestamp": "2026-09-17 21:08:06",
+    "args": [],
+    "kwargs": {}
+  },
+  {
+    "event": "login",
+    "user": "bob_admin",
+    "result": "failure",
+    "timestamp": "2026-09-17 21:08:06",
+    "args": [],
+    "kwargs": {}
+  },
+  {
+    "event": "login",
+    "user": "artem",
+    "result": "success",
+    "timestamp": "2026-09-17 21:18:58",
+    "args": [
+      "artem",
+      "Passw0rd!2024"
+    ],
+    "kwargs": {}
+  },
+  {
+    "event": "login",
+    "user": "artem",
+    "result": "failure",
+    "timestamp": "2026-09-17 21:18:58",
+    "args": [
+      "artem",
+      "wrongpassword"
+    ],
+    "kwargs": {}
+  },
+  {
+    "event": "login",
+    "user": "no_such_user",
+    "result": "failure",
+    "timestamp": "2026-09-17 21:18:58",
+    "args": [
+      "no_such_user",
+      "abc12345678"
+    ],
+    "kwargs": {}
+  },
+  {
+    "event": "login",
+    "user": "",
+    "result": "failure",
+    "timestamp": "2026-09-17 21:18:58",
+    "args": [
+      "",
+      ""
+    ],
+    "kwargs": {}
+  },
+  {
+    "event": "login",
+    "user": "artem",
+    "result": "success",
+    "timestamp": "2026-09-17 21:41:03",
+    "args": [
+      "artem",
+      "Passw0rd!2024"
+    ],
+    "kwargs": {}
+  },
+  {
+    "event": "login",
+    "user": "artem",
+    "result": "failure",
+    "timestamp": "2026-09-17 21:41:03",
+    "args": [
+      "artem",
+      "wrongpassword"
+    ],
+    "kwargs": {}
+  },
+  {
+    "event": "login",
+    "user": "no_such_user",
+    "result": "failure",
+    "timestamp": "2026-09-17 21:41:03",
+    "args": [
+      "no_such_user",
+      "abc12345678"
+    ],
+    "kwargs": {}
+  },
+  {
+    "event": "login",
+    "user": "",
+    "result": "failure",
+    "timestamp": "2026-09-17 21:41:03",
+    "args": [
+      "",
+      ""
+    ],
+    "kwargs": {}
+  }
+]
