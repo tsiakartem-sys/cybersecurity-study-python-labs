@@ -11,9 +11,7 @@ except ImportError:
     VARIANT_NUMBER = 8
 
 
-# ---------------------------------------------------------------------------
 # Вхідні дані (Варіант 8)
-# ---------------------------------------------------------------------------
 users = {
     "crypto_specialist": {
         "role": "cryptographer",
@@ -65,9 +63,7 @@ security_levels = ("Unclassified", "For Official Use", "Confidential", "Secret")
 blocked_users = {"test_account", "gdpr_violation", "data_breach_user"}
 
 
-# ---------------------------------------------------------------------------
 # 2. Список ресурсів із текстовою назвою рівня безпеки
-# ---------------------------------------------------------------------------
 def print_resources(resources_list, levels):
     """Виводить перелік ресурсів, замінюючи числовий рівень на текстовий."""
     print("=== Список ресурсів системи ===")
@@ -77,9 +73,7 @@ def print_resources(resources_list, levels):
     print()
 
 
-# ---------------------------------------------------------------------------
 # 3. Алгоритм перевірки доступу
-# ---------------------------------------------------------------------------
 def check_access(username, resource_name, resource_level, users_dict, blocked):
     """
     Повертає кортеж (allowed: bool, reason: str | None) для пари
@@ -102,9 +96,7 @@ def check_access(username, resource_name, resource_level, users_dict, blocked):
     return False, "Insufficient clearance"
 
 
-# ---------------------------------------------------------------------------
 # 4. Виведення результатів перевірки
-# ---------------------------------------------------------------------------
 def run_access_checks(usernames, resources_list, users_dict, blocked):
     """
     Перевіряє доступ кожного логіна з usernames до кожного ресурсу.
