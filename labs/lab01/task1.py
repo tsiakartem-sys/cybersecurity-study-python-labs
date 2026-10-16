@@ -59,7 +59,7 @@ def evaluate_password(password, criteria, forbidden_passwords, passwords_list):
     """
     min_length = criteria["min_length"]
 
-    # -- Заборонений --------------------------------------------------
+    #  Заборонені паролі
     if password in forbidden_passwords or len(password) < min_length:
         return "Заборонений"
 
@@ -80,14 +80,14 @@ def evaluate_password(password, criteria, forbidden_passwords, passwords_list):
 
     all_criteria_met = len(password) >= min_length and all(required_checks)
 
-    # -- Сильний / Дуже сильний ----------------------------------------
+    # -- Сильний / Дуже сильний 
     if all_criteria_met:
         is_unique = passwords_list.count(password) == 1
         if len(password) >= min_length + 4 and is_unique:
             return "Дуже сильний"
         return "Сильний"
 
-    # -- Середній / Слабкий ----------------------------------------------
+    # -- Середній / Слабкий 
     # Групи символів: цифра, велика літера, спецсимвол, мала літера.
     groups_satisfied = sum([has_digit, has_upper, has_special, has_lower])
 

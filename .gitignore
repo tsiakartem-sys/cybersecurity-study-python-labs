@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Згенеровані файли лабораторних: логи та бази користувачів
+*.log
+labs/lab01/data/log.json
+labs/lab01/data/users.csv
+labs/lab02/data/data_v08/dns_alerts.csv
