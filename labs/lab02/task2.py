@@ -67,6 +67,9 @@ def add_analyze_arguments(parser):
     )
 
 
+REQUIRED_COLUMNS = {"Timestamp", "ClientIP", "Domain", "QueryType"}
+
+
 def read_blacklist(path):
     domains = []
     with open(path, encoding="utf-8") as f:
@@ -81,18 +84,31 @@ def read_dns_log(path):
     records = []
     with open(path, encoding="utf-8") as f:
         reader = csv.DictReader(f)
+        # перевіряємо заголовок одразу, а не на першому рядку даних
+        # (для порожнього файлу fieldnames == None)
+        missing = REQUIRED_COLUMNS - set(reader.fieldnames or [])
+        if missing:
+            raise KeyError(", ".join(sorted(missing)))
+
         for row in reader:
-            ip = row["ClientIP"].strip()
-            domain = row["Domain"].strip().lower()
+            try:
+                ip = row["ClientIP"].strip()
+                domain = row["Domain"].strip().lower()
+                time = row["Timestamp"].strip()
+                query_type = row["QueryType"].strip().upper()
+            except AttributeError:
+                # у рядку менше колонок, ніж у заголовку -> значення None
+                logger.warning(f"Пропущено неповний рядок {reader.line_num}: {row}")
+                continue
             if not re.match(IP_PATTERN, ip) or not re.match(DOMAIN_PATTERN, domain):
                 logger.warning(f"Пропущено некоректний рядок: {row}")
                 continue
             records.append(
                 {
-                    "time": row["Timestamp"].strip(),
+                    "time": time,
                     "ip": ip,
                     "domain": domain,
-                    "type": row["QueryType"].strip().upper(),
+                    "type": query_type,
                 }
             )
     return records
@@ -171,13 +187,18 @@ def save_alerts(alerts, path):
 
 
 def run_analysis(args):
+    # лог-файл може не відкритися (немає папки, немає прав),
+    # а логер ще не налаштований, тому пишемо у stderr
+    try:
+        file_handler = logging.FileHandler(args.log_file, encoding="utf-8")
+    except OSError as e:
+        print(f"Не вдалося відкрити лог-файл {args.log_file}: {e}", file=sys.stderr)
+        return 1
+
     logging.basicConfig(
         level=args.log_level,
         format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[
-            logging.FileHandler(args.log_file, encoding="utf-8"),
-            logging.StreamHandler(sys.stdout),
-        ],
+        handlers=[file_handler, logging.StreamHandler(sys.stdout)],
     )
 
     if args.min_domain_len <= 0:
@@ -189,6 +210,19 @@ def run_analysis(args):
         blacklist = read_blacklist(args.blacklist)
     except FileNotFoundError as e:
         logger.error(f"Файл не знайдено: {e.filename}")
+        return 1
+    except PermissionError as e:
+        logger.error(f"Немає доступу до файлу: {e.filename}")
+        return 1
+    except OSError as e:
+        # інші помилки ОС, наприклад шлях вказує на папку
+        logger.error(f"Не вдалося прочитати {e.filename}: {e.strerror}")
+        return 1
+    except UnicodeDecodeError as e:
+        logger.error(f"Файл не в кодуванні UTF-8: {e}")
+        return 1
+    except csv.Error as e:
+        logger.error(f"Пошкоджений CSV-файл: {e}")
         return 1
     except KeyError as e:
         logger.error(f"У CSV немає колонки {e}")

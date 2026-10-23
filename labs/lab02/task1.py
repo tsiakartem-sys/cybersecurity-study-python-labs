@@ -1,11 +1,13 @@
 """Завдання 1: класи User, Admin, Session, AuditLog та UserAccount."""
 
 import hashlib
+import ipaddress
 import os
 import re
 from datetime import datetime, timedelta
 
 SESSION_TIMEOUT = 900  # 15 хвилин
+ROLES = ["user", "admin"]
 
 # шаблон для перевірки email
 EMAIL_PATTERN = (
@@ -15,6 +17,8 @@ EMAIL_PATTERN = (
 
 class User:
     def __init__(self, username, email, password, role="user", active=True):
+        if not isinstance(password, str) or password == "":
+            raise ValueError("Пароль має бути непорожнім рядком")
         self.username = username
         self.email = email  # тут спрацює сеттер з перевіркою
         self.role = role
@@ -32,12 +36,17 @@ class User:
 
     @email.setter
     def email(self, value):
-        if not re.match(EMAIL_PATTERN, value):
+        # re.match з не-рядком (None, число) кидає TypeError
+        if not isinstance(value, str) or not re.match(EMAIL_PATTERN, value):
             raise ValueError(f"Некоректний email: {value}")
         self._email = value
 
     def check_password(self, password):
-        return self.__make_hash(password) == self.__password_hash
+        try:
+            return self.__make_hash(password) == self.__password_hash
+        except AttributeError:
+            # пароль не рядок (наприклад None) -> у нього немає .encode()
+            return False
 
     def deactivate(self):
         self.active = False
@@ -73,6 +82,10 @@ class Admin(User):
 
 class Session:
     def __init__(self, ip):
+        try:
+            ipaddress.ip_address(ip)
+        except ValueError:
+            raise ValueError(f"Некоректна IP-адреса: {ip}") from None
         self.ip = ip
         self.login_time = datetime.now().astimezone()
         self.last_activity = datetime.now().astimezone()
@@ -115,7 +128,12 @@ class UserAccount:
             and self.user.active
             and self.user.check_password(password)
         ):
-            self.session = Session(ip)
+            try:
+                self.session = Session(ip)
+            except ValueError:
+                # вхід з некоректної адреси не пускаємо, але фіксуємо в журналі
+                self.audit_log.add_log(username, "login_failure (bad ip)")
+                return False
             self.audit_log.add_log(username, "login_success")
             return True
         self.audit_log.add_log(username, "login_failure")
@@ -154,6 +172,8 @@ class UserAccount:
         if key == "email":
             self.user.email = value
         elif key == "role":
+            if value not in ROLES:
+                raise ValueError(f"Невідома роль: {value}")
             self.user.role = value
         elif key == "session":
             if not isinstance(value, Session):
@@ -182,6 +202,15 @@ def run_demo():
     print(user)
     print(admin)
 
+    for bad_args in [
+        ("bob", "not-an-email", "Pass123!"),
+        ("bob", "bob_user@example.com", ""),
+    ]:
+        try:
+            User(*bad_args)
+        except ValueError as e:
+            print("Помилка створення:", e)
+
     account = UserAccount(user, audit)
     admin_account = UserAccount(admin, audit)
 
@@ -191,6 +220,8 @@ def run_demo():
         "Неіснуючий користувач:",
         account.login("hacker", "S3cure!Passw0rd", "10.0.0.66"),
     )
+    print("Пароль None:", account.login("artem", None, "192.168.1.10"))
+    print("Некоректна IP:", account.login("artem", "S3cure!Passw0rd", "999.1.1.1"))
     print(
         "Правильний пароль:", account.login("artem", "S3cure!Passw0rd", "192.168.1.10")
     )
@@ -218,6 +249,10 @@ def run_demo():
     try:
         account["session"] = "abc"
     except TypeError as e:
+        print("Помилка:", e)
+    try:
+        account["role"] = "superuser"
+    except ValueError as e:
         print("Помилка:", e)
 
     print("\n--- Адміністратор ---")
