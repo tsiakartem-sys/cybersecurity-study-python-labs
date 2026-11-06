@@ -222,3 +222,7 @@ __marimo__/
 labs/lab01/data/log.json
 labs/lab01/data/users.csv
 labs/lab02/data/data_v08/dns_alerts.csv
+labs/lab03/data/*.sqlite3
+labs/lab03/data/*.sqlite3-*
+labs/lab03/data/*.db
+labs/lab03/data/*.db-*
